@@ -1,0 +1,260 @@
+syntax = "proto3";
+
+package reckon.gateway.v1;
+
+option go_package = "codeberg.org/reckon-db-org/reckon-go/genproto/gatewayv1;gatewayv1";
+
+// AdminService provides store inspection, scavenging, and link management.
+service AdminService {
+
+  // ── Store Inspection ──
+
+  // Get overall store statistics.
+  rpc GetStoreStats(StoreStatsRequest) returns (StoreStatsResponse);
+
+  // Get detailed information about a specific stream.
+  rpc GetStreamInfo(StreamInfoRequest) returns (StreamInfoResponse);
+
+  // Get a summary of event types and their counts.
+  rpc GetEventTypeSummary(EventTypeSummaryRequest) returns (EventTypeSummaryResponse);
+
+  // ── Scavenging ──
+
+  // Scavenge (compact) a stream by removing superseded events.
+  rpc Scavenge(ScavengeRequest) returns (ScavengeResponse);
+
+  // Scavenge all streams matching a pattern.
+  rpc ScavengeMatching(ScavengeMatchingRequest) returns (ScavengeMatchingResponse);
+
+  // Preview what a scavenge operation would do (dry run).
+  rpc ScavengeDryRun(ScavengeRequest) returns (ScavengeResponse);
+
+  // ── Stream Links ──
+
+  // Create a link between streams.
+  rpc CreateLink(CreateLinkRequest) returns (CreateLinkResponse);
+
+  // Delete a link.
+  rpc DeleteLink(DeleteLinkRequest) returns (DeleteLinkResponse);
+
+  // Get link information.
+  rpc GetLink(GetLinkRequest) returns (LinkInfo);
+
+  // List all links for a store.
+  rpc ListLinks(ListLinksRequest) returns (ListLinksResponse);
+
+  // Start a link (begin processing).
+  rpc StartLink(StartLinkRequest) returns (StartLinkResponse);
+
+  // Stop a link (pause processing).
+  rpc StopLink(StopLinkRequest) returns (StopLinkResponse);
+
+  // Get runtime info about a link.
+  rpc GetLinkInfo(GetLinkRequest) returns (LinkRuntimeInfo);
+
+  // ── Catalogue operations (catalogue-mode reckon-gateway 0.5+) ──
+
+  // Re-read the operator-curated clusters.eterm and reconcile the
+  // running cluster connectors. Returns the diff.
+  rpc ReloadCatalogue(ReloadCatalogueRequest) returns (ReloadCatalogueResponse);
+
+  // Read-only snapshot of the catalogue: per-cluster connector
+  // status, member counts, store counts, refresh ages. Cookies
+  // are NEVER returned.
+  rpc GetCatalogueStatus(GetCatalogueStatusRequest) returns (GetCatalogueStatusResponse);
+}
+
+// ──────────────────────────────────────────────
+// Store Inspection
+// ──────────────────────────────────────────────
+
+message StoreStatsRequest {
+  string store_id = 1;
+}
+
+message StoreStatsResponse {
+  uint64 total_streams = 1;
+  uint64 total_events = 2;
+  uint64 total_subscriptions = 3;
+  uint64 total_snapshots = 4;
+  map<string, string> details = 5;
+}
+
+message StreamInfoRequest {
+  string store_id = 1;
+  string stream_id = 2;
+}
+
+message StreamInfoResponse {
+  string stream_id = 1;
+  uint64 version = 2;
+  uint64 event_count = 3;
+  int64 created_at = 4;
+  int64 last_event_at = 5;
+  repeated string event_types = 6;
+}
+
+message EventTypeSummaryRequest {
+  string store_id = 1;
+}
+
+message EventTypeSummaryEntry {
+  string event_type = 1;
+  uint64 count = 2;
+}
+
+message EventTypeSummaryResponse {
+  repeated EventTypeSummaryEntry entries = 1;
+}
+
+// ──────────────────────────────────────────────
+// Scavenging
+// ──────────────────────────────────────────────
+
+message ScavengeRequest {
+  string store_id = 1;
+  string stream_id = 2;
+  map<string, string> options = 3;
+}
+
+message ScavengeResponse {
+  uint64 events_removed = 1;
+  uint64 events_remaining = 2;
+  uint64 space_reclaimed_bytes = 3;
+  map<string, string> details = 4;
+}
+
+message ScavengeMatchingRequest {
+  string store_id = 1;
+  string pattern = 2;
+  map<string, string> options = 3;
+}
+
+message ScavengeMatchingResponse {
+  repeated ScavengeResponse results = 1;
+}
+
+// ──────────────────────────────────────────────
+// Stream Links
+// ──────────────────────────────────────────────
+
+message CreateLinkRequest {
+  string store_id = 1;
+  string name = 2;
+  string source = 3;
+  string target = 4;
+  map<string, string> options = 5;
+}
+
+message CreateLinkResponse {}
+
+message DeleteLinkRequest {
+  string store_id = 1;
+  string name = 2;
+}
+
+message DeleteLinkResponse {}
+
+message GetLinkRequest {
+  string store_id = 1;
+  string name = 2;
+}
+
+message LinkInfo {
+  string name = 1;
+  string source = 2;
+  string target = 3;
+  map<string, string> options = 4;
+}
+
+message StartLinkRequest {
+  string store_id = 1;
+  string name = 2;
+}
+
+message StartLinkResponse {}
+
+message StopLinkRequest {
+  string store_id = 1;
+  string name = 2;
+}
+
+message StopLinkResponse {}
+
+message ListLinksRequest {
+  string store_id = 1;
+}
+
+message ListLinksResponse {
+  repeated LinkInfo links = 1;
+}
+
+message LinkRuntimeInfo {
+  string name = 1;
+  string status = 2;
+  uint64 events_processed = 3;
+  map<string, string> details = 4;
+}
+
+// ──────────────────────────────────────────────
+// Catalogue operations (reckon-gateway 0.5+)
+// ──────────────────────────────────────────────
+
+message ReloadCatalogueRequest {}
+
+message ReloadCatalogueResponse {
+  // cluster_ids newly connected since the previous catalogue state.
+  repeated string added = 1;
+
+  // cluster_ids retired (removed from clusters.eterm).
+  repeated string removed = 2;
+
+  // cluster_ids whose config (members or cookie) changed and whose
+  // connector was therefore terminated + restarted.
+  repeated string restarted = 3;
+
+  // Populated only on configuration-load failure (malformed eterm,
+  // duplicate cluster_id, missing required field). When non-empty,
+  // the live state was NOT mutated.
+  string error = 4;
+}
+
+message GetCatalogueStatusRequest {}
+
+message GetCatalogueStatusResponse {
+  // Total distinct store_ids visible across every connected cluster.
+  int32 catalogue_size = 1;
+
+  // Process uptime in milliseconds (informational; ops dashboards).
+  int64 gateway_uptime_ms = 2;
+
+  // Per-cluster connector status.
+  repeated CatalogueClusterStatus clusters = 3;
+}
+
+// Status of a single cluster connector inside the catalogue. Distinct
+// from `ClusterStatus` (enum) in reckon_health.proto, which describes
+// raft-quorum verification outcomes; collapsing both onto the same
+// symbol would collide in the `reckon.gateway.v1` namespace and
+// break code generators that enforce single-definition (buf/protoc).
+message CatalogueClusterStatus {
+  // Operator-assigned label from clusters.eterm.
+  string cluster_id = 1;
+
+  // Currently-connected Erlang dist members of the cluster.
+  repeated string members = 2;
+
+  // Distinct store_ids the gateway sees from this cluster.
+  int32 store_count = 3;
+
+  // "up" | "degraded" | "unreachable" | "not_yet_connected".
+  string status = 4;
+
+  // ISO-8601 timestamp of the last successful refresh tick.
+  // Empty string when the connector has never reached the cluster.
+  string last_refresh = 5;
+
+  // Free-form recent error description. Empty when status = "up".
+  // NEVER contains the cookie value.
+  string last_error = 6;
+}
