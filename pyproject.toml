@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reckon-py"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python client for ReckonDB"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -21,8 +21,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://codeberg.org/reckon-db-org/reckon-py"
-Source = "https://codeberg.org/reckon-db-org/reckon-py"
+Homepage = "https://github.com/reckon-db-org/reckon-py"
+Source = "https://github.com/reckon-db-org/reckon-py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/reckon"]

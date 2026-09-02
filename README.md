@@ -1,6 +1,6 @@
 # reckon-py
 
-Python gRPC client for [ReckonDB](https://codeberg.org/reckon-db-org).
+Python gRPC client for [ReckonDB](https://github.com/reckon-db-org).
 
 Packages the generated stubs for all ReckonDB services and adds three thin conveniences:
 `connect()`, named integer sentinels, and TagFilter helpers for DCB queries.
