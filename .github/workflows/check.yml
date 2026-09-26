@@ -1,0 +1,46 @@
+# Every push and pull request: the tests on each supported Python, and a
+# build of the sdist and wheel that twine accepts. A public repository, so
+# GitHub-hosted runners.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install with the dev extras
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+      - name: pytest
+        run: python -m pytest -q
+      - name: The installed package imports as reckon_db
+        run: python -c "import reckon_db; reckon_db.connect('localhost:1', insecure=True)"
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build the sdist and wheel
+        run: python -m pip install --upgrade build twine && python -m build
+      - name: twine check
+        run: python -m twine check --strict dist/*
