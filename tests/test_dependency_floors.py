@@ -6,15 +6,19 @@ and each _pb2_grpc.py refuses a grpcio older than GRPC_GENERATED_VERSION.
 pyproject.toml declared grpcio>=1.60 and protobuf>=4.0, so pip resolved an
 environment in which `import reckon_db` then raised. The floors must be at
 least the generated versions, and protobuf below the next major, which the
-gencode rejects too.
+gencode rejects too. Checked on the installed distribution's metadata and
+stubs, so it holds for the wheel a user installs.
 """
 
+import importlib.metadata
 import pathlib
 import re
-import tomllib
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
-PROTO = ROOT / "src" / "reckon_db" / "_proto"
+import reckon_db._proto
+
+# The installed distribution and its stubs: what a user gets from pip, from
+# the wheel as from an editable install.
+PROTO = pathlib.Path(reckon_db._proto.__file__).parent
 
 
 def _version(text):
@@ -22,8 +26,8 @@ def _version(text):
 
 
 def _requirement(name):
-    deps = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["dependencies"]
-    (spec,) = [d for d in deps if re.match(rf"{name}\b", d)]
+    deps = importlib.metadata.requires("reckon-py")
+    (spec,) = [d for d in deps if re.match(rf"{name}\b", d) and "extra ==" not in d]
     floor = re.search(r">=\s*([0-9.]+)", spec)
     upper = re.search(r"<\s*([0-9.]+)", spec)
     return _version(floor.group(1)), (_version(upper.group(1)) if upper else None)
