@@ -17,7 +17,8 @@ The distribution is `reckon-py`; the import package is `reckon_db`:
 import reckon_db
 ```
 
-Requires Python 3.10+, grpcio ≥ 1.60, protobuf ≥ 4.0. 0.2.0 is the first
+Requires Python 3.10+, grpcio ≥ 1.81.1, protobuf ≥ 6.33.5 and < 7: the
+versions the stubs were generated with, and the oldest they run on. 0.2.0 is the first
 release on PyPI.
 
 ## Quick start
@@ -49,7 +50,11 @@ stub.AppendEvents(streams_pb.AppendEventsRequest(
 | `reckon_db._proto.reckon_streams_pb2[_grpc]` | Streams (append, read, watch, indexed reads) |
 | `reckon_db._proto.reckon_dcb_pb2[_grpc]` | DCB (cross-aggregate conditional append) |
 | `reckon_db._proto.reckon_subscriptions_pb2[_grpc]` | Persistent subscriptions |
+| `reckon_db._proto.reckon_snapshots_pb2[_grpc]` | Snapshots |
+| `reckon_db._proto.reckon_temporal_pb2[_grpc]` | Temporal reads (read until or between points in time, version at a time) |
+| `reckon_db._proto.reckon_schema_pb2[_grpc]` | Schemas (register, list, version, upcast events) |
 | `reckon_db._proto.reckon_stores_pb2[_grpc]` | Store discovery |
+| `reckon_db._proto.reckon_admin_pb2[_grpc]` | Administration (store and stream stats, scavenge, stream links, catalogue) |
 | `reckon_db._proto.reckon_health_pb2[_grpc]` | Health checks |
 | `reckon_db._proto.reckon_shared_pb2` | Shared types |
 

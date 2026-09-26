@@ -14,10 +14,23 @@ installed side by side. The distribution name stays `reckon-py`, and the
 gRPC wire (protobuf package `reckon.gateway.v1`) is unchanged. Nothing
 depended on the old name, since it was never published.
 
+### Changed — dependency floors are the versions the stubs need
+
+`grpcio>=1.81.1` and `protobuf>=6.33.5,<7` (they said `grpcio>=1.60`,
+`protobuf>=4.0`). The generated stubs refuse an older runtime at import, and
+protobuf gencode refuses the next major, so the old floors let pip resolve an
+environment where `import reckon_db` then failed. A test keeps the floors
+equal to or above what the stubs were generated with; `grpcio-tools` is
+pinned in the dev extra so a regeneration cannot move them silently. The
+`.pyi` stubs import each other relatively now, so type checkers resolve them
+through `py.typed`.
+
 ### Added — CI and a publish workflow
 
-Every push and pull request runs the tests on Python 3.10 to 3.13 and builds
-and checks the sdist and wheel. A `v*` tag publishes to PyPI through Trusted
+Every push and pull request runs the tests on Python 3.10 to 3.13, and builds
+and checks the sdist and wheel, installs the wheel into a clean environment
+at the dependency floors and at the latest, imports every stub module from
+it and runs the tests against it. A `v*` tag publishes to PyPI through Trusted
 Publishing (no stored token), and refuses a tag that disagrees with the
 version in `pyproject.toml`.
 

@@ -1,10 +1,5 @@
 """Unit tests for TagFilter helpers — no network required."""
 
-import sys
-import os
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
 import reckon_db
 from reckon_db._proto import reckon_dcb_pb2 as _pb
 

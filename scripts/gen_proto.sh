@@ -18,10 +18,11 @@ python3 -m grpc_tools.protoc \
   "$PROTO_DIR"/*.proto
 
 # Fix relative imports: grpcio-tools emits absolute `import reckon_*_pb2`
-# which fails when stubs live inside a package. Rewrite to relative in both
-# _pb2.py and _pb2_grpc.py files.
+# which fails when stubs live inside a package. Rewrite to relative in the
+# _pb2.py, _pb2_grpc.py and .pyi files (the .pyi ones are what type
+# checkers read through py.typed).
 cd "$OUT_DIR"
-for f in *_pb2.py *_pb2_grpc.py; do
+for f in *_pb2.py *_pb2_grpc.py *_pb2.pyi; do
   sed -i 's/^import \(reckon_[a-z_]*_pb2\)/from . import \1/' "$f"
 done
 

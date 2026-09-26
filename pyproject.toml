@@ -7,22 +7,37 @@ name = "reckon-py"
 version = "0.2.0"
 description = "Python client for ReckonDB"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+# The floors are the versions the stubs in src/reckon_db/_proto were
+# generated with: they refuse any older runtime, and protobuf gencode refuses
+# the next major. tests/test_dependency_floors.py keeps these honest.
 dependencies = [
-    "grpcio>=1.60",
-    "protobuf>=4.0",
+    "grpcio>=1.81.1",
+    "protobuf>=6.33.5,<7",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "grpcio-tools>=1.60",
+    # Pinned: regenerating the stubs with another grpcio-tools moves the
+    # runtime floors above.
+    "grpcio-tools==1.81.1",
     "pytest>=7.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/reckon-db-org/reckon-py"
 Source = "https://github.com/reckon-db-org/reckon-py"
+Changelog = "https://github.com/reckon-db-org/reckon-py/blob/main/CHANGELOG.md"
+Issues = "https://github.com/reckon-db-org/reckon-py/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/reckon_db"]
