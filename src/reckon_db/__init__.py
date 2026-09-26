@@ -8,21 +8,21 @@ reckon-py packages the ReckonDB gRPC stubs and adds three things:
 3. TagFilter helpers (``match_any``, ``match_all``, ``event_type``, ``and_``, ``or_``)
    that build ``reckon_dcb_pb2.TagFilter`` proto objects
 
-Everything else is the raw generated stubs under ``reckon._proto``.
+Everything else is the raw generated stubs under ``reckon_db._proto``.
 
 Usage::
 
-    import reckon
-    from reckon._proto import reckon_streams_pb2 as streams_pb
-    from reckon._proto import reckon_streams_pb2_grpc as streams_grpc
+    import reckon_db
+    from reckon_db._proto import reckon_streams_pb2 as streams_pb
+    from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 
-    channel = reckon.connect("localhost:50051", insecure=True)
+    channel = reckon_db.connect("localhost:50051", insecure=True)
     stub = streams_grpc.StreamServiceStub(channel)
 
     stub.AppendEvents(streams_pb.AppendEventsRequest(
         store_id="default_store",
         stream_id="users-1",
-        expected_version=reckon.AnyVersion,
+        expected_version=reckon_db.AnyVersion,
         events=[streams_pb.ProposedEvent(
             event_type="user_registered_v1",
             data=b'{"name": "Alice"}',
@@ -32,13 +32,13 @@ Usage::
 
 DCB decision loop::
 
-    from reckon._proto import reckon_dcb_pb2 as dcb_pb
-    from reckon._proto import reckon_dcb_pb2_grpc as dcb_grpc
+    from reckon_db._proto import reckon_dcb_pb2 as dcb_pb
+    from reckon_db._proto import reckon_dcb_pb2_grpc as dcb_grpc
 
     stub = dcb_grpc.DcbServiceStub(channel)
-    f = reckon.and_(
-        reckon.event_type("seat_reserved_v1"),
-        reckon.match_any("seat:FL-42:A3"),
+    f = reckon_db.and_(
+        reckon_db.event_type("seat_reserved_v1"),
+        reckon_db.match_any("seat:FL-42:A3"),
     )
 
     for _ in range(5):
@@ -46,7 +46,7 @@ DCB decision loop::
             store_id="default_store",
             tag_filter=f,
         ))
-        cutoff = ctx.max_seq if ctx.events else reckon.SEQ_CUTOFF_SAW_NOTHING
+        cutoff = ctx.max_seq if ctx.events else reckon_db.SEQ_CUTOFF_SAW_NOTHING
 
         resp = stub.AppendIfNoTagMatches(dcb_pb.AppendIfNoTagMatchesRequest(
             store_id="default_store",
@@ -66,7 +66,7 @@ from __future__ import annotations
 
 import grpc
 
-from reckon._proto import reckon_dcb_pb2 as _dcb
+from reckon_db._proto import reckon_dcb_pb2 as _dcb
 
 # ──────────────────────────────────────────────
 # Expected-version sentinels (streams)
@@ -140,9 +140,9 @@ def connect(
     - ``server_name_override``: TLS SNI override (when dialling by IP).
 
     The returned channel is a standard ``grpc.Channel``. Pass it to any
-    stub constructor from ``reckon._proto``::
+    stub constructor from ``reckon_db._proto``::
 
-        channel = reckon.connect("localhost:50051", insecure=True)
+        channel = reckon_db.connect("localhost:50051", insecure=True)
         stub = reckon_streams_pb2_grpc.StreamServiceStub(channel)
     """
     if insecure:

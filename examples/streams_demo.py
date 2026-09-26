@@ -1,16 +1,16 @@
 """Streams: append and read events from a single stream."""
 
-import reckon
-from reckon._proto import reckon_streams_pb2 as streams_pb
-from reckon._proto import reckon_streams_pb2_grpc as streams_grpc
+import reckon_db
+from reckon_db._proto import reckon_streams_pb2 as streams_pb
+from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 
-channel = reckon.connect("localhost:50051", insecure=True)
+channel = reckon_db.connect("localhost:50051", insecure=True)
 stub = streams_grpc.StreamServiceStub(channel)
 
 resp = stub.AppendEvents(streams_pb.AppendEventsRequest(
     store_id="default_store",
     stream_id="users-1",
-    expected_version=reckon.NoStream,
+    expected_version=reckon_db.NoStream,
     events=[streams_pb.ProposedEvent(
         event_type="user_registered_v1",
         data=b'{"name": "Alice"}',

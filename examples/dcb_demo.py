@@ -1,17 +1,17 @@
 """DCB: cross-aggregate conditional append (email uniqueness example)."""
 
-import reckon
-from reckon._proto import reckon_dcb_pb2 as dcb_pb
-from reckon._proto import reckon_dcb_pb2_grpc as dcb_grpc
-from reckon._proto import reckon_streams_pb2 as streams_pb
+import reckon_db
+from reckon_db._proto import reckon_dcb_pb2 as dcb_pb
+from reckon_db._proto import reckon_dcb_pb2_grpc as dcb_grpc
+from reckon_db._proto import reckon_streams_pb2 as streams_pb
 
-channel = reckon.connect("localhost:50051", insecure=True)
+channel = reckon_db.connect("localhost:50051", insecure=True)
 stub = dcb_grpc.DcbServiceStub(channel)
 
 email = "alice@example.com"
-f = reckon.and_(
-    reckon.event_type("user_registered_v1"),
-    reckon.match_any(f"email:{email}"),
+f = reckon_db.and_(
+    reckon_db.event_type("user_registered_v1"),
+    reckon_db.match_any(f"email:{email}"),
 )
 
 for attempt in range(5):
@@ -23,7 +23,7 @@ for attempt in range(5):
         print("email already taken")
         break
 
-    cutoff = ctx.max_seq if ctx.events else reckon.SEQ_CUTOFF_SAW_NOTHING
+    cutoff = ctx.max_seq if ctx.events else reckon_db.SEQ_CUTOFF_SAW_NOTHING
     resp = stub.AppendIfNoTagMatches(dcb_pb.AppendIfNoTagMatchesRequest(
         store_id="default_store",
         tag_filter=f,

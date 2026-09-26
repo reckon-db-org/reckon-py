@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Regenerate gRPC stubs from proto/ into src/reckon/_proto/.
+# Regenerate gRPC stubs from proto/ into src/reckon_db/_proto/.
 # Run from the repo root: ./scripts/gen_proto.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$SCRIPT_DIR/.."
 PROTO_DIR="$ROOT/proto"
-OUT_DIR="$ROOT/src/reckon/_proto"
+OUT_DIR="$ROOT/src/reckon_db/_proto"
 
 mkdir -p "$OUT_DIR"
 

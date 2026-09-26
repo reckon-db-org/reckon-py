@@ -11,22 +11,29 @@ Packages the generated stubs for all ReckonDB services and adds three thin conve
 pip install reckon-py
 ```
 
-Requires Python 3.10+, grpcio ≥ 1.60, protobuf ≥ 4.0.
+The distribution is `reckon-py`; the import package is `reckon_db`:
+
+```python
+import reckon_db
+```
+
+Requires Python 3.10+, grpcio ≥ 1.60, protobuf ≥ 4.0. 0.2.0 is the first
+release on PyPI.
 
 ## Quick start
 
 ```python
-import reckon
-from reckon._proto import reckon_streams_pb2 as streams_pb
-from reckon._proto import reckon_streams_pb2_grpc as streams_grpc
+import reckon_db
+from reckon_db._proto import reckon_streams_pb2 as streams_pb
+from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 
-channel = reckon.connect("localhost:50051", insecure=True)
+channel = reckon_db.connect("localhost:50051", insecure=True)
 stub = streams_grpc.StreamServiceStub(channel)
 
 stub.AppendEvents(streams_pb.AppendEventsRequest(
     store_id="default_store",
     stream_id="users-1",
-    expected_version=reckon.AnyVersion,
+    expected_version=reckon_db.AnyVersion,
     events=[streams_pb.ProposedEvent(
         event_type="user_registered_v1",
         data=b'{"name": "Alice"}',
@@ -39,41 +46,41 @@ stub.AppendEvents(streams_pb.AppendEventsRequest(
 
 | Module | Service |
 |--------|---------|
-| `reckon._proto.reckon_streams_pb2[_grpc]` | Streams (append, read, watch, indexed reads) |
-| `reckon._proto.reckon_dcb_pb2[_grpc]` | DCB (cross-aggregate conditional append) |
-| `reckon._proto.reckon_subscriptions_pb2[_grpc]` | Persistent subscriptions |
-| `reckon._proto.reckon_stores_pb2[_grpc]` | Store discovery |
-| `reckon._proto.reckon_health_pb2[_grpc]` | Health checks |
-| `reckon._proto.reckon_shared_pb2` | Shared types |
+| `reckon_db._proto.reckon_streams_pb2[_grpc]` | Streams (append, read, watch, indexed reads) |
+| `reckon_db._proto.reckon_dcb_pb2[_grpc]` | DCB (cross-aggregate conditional append) |
+| `reckon_db._proto.reckon_subscriptions_pb2[_grpc]` | Persistent subscriptions |
+| `reckon_db._proto.reckon_stores_pb2[_grpc]` | Store discovery |
+| `reckon_db._proto.reckon_health_pb2[_grpc]` | Health checks |
+| `reckon_db._proto.reckon_shared_pb2` | Shared types |
 
 ## Sentinels
 
 ```python
-reckon.AnyVersion        # -2  append regardless of current stream version
-reckon.NoStream          # -1  append only if the stream does not exist
-reckon.StreamExists      # -4  append only if the stream exists
+reckon_db.AnyVersion        # -2  append regardless of current stream version
+reckon_db.NoStream          # -1  append only if the stream does not exist
+reckon_db.StreamExists      # -4  append only if the stream exists
 
-reckon.SEQ_CUTOFF_SAW_NOTHING  # -1  DCB: treat any match as a conflict
+reckon_db.SEQ_CUTOFF_SAW_NOTHING  # -1  DCB: treat any match as a conflict
 ```
 
 ## DCB TagFilter helpers
 
 ```python
-import reckon
-from reckon._proto import reckon_dcb_pb2 as dcb_pb
-from reckon._proto import reckon_dcb_pb2_grpc as dcb_grpc
+import reckon_db
+from reckon_db._proto import reckon_dcb_pb2 as dcb_pb
+from reckon_db._proto import reckon_dcb_pb2_grpc as dcb_grpc
 
 stub = dcb_grpc.DcbServiceStub(channel)
-f = reckon.and_(
-    reckon.event_type("seat_reserved_v1"),
-    reckon.match_any("seat:FL-42:A3"),
+f = reckon_db.and_(
+    reckon_db.event_type("seat_reserved_v1"),
+    reckon_db.match_any("seat:FL-42:A3"),
 )
 
 ctx = stub.ReadDcbContext(dcb_pb.ReadDcbContextRequest(
     store_id="default_store",
     tag_filter=f,
 ))
-cutoff = ctx.max_seq if ctx.events else reckon.SEQ_CUTOFF_SAW_NOTHING
+cutoff = ctx.max_seq if ctx.events else reckon_db.SEQ_CUTOFF_SAW_NOTHING
 
 resp = stub.AppendIfNoTagMatches(dcb_pb.AppendIfNoTagMatchesRequest(
     store_id="default_store",
@@ -99,16 +106,16 @@ All helpers return `reckon_dcb_pb2.TagFilter` objects directly.
 
 ```python
 # Plaintext (lab / loopback only)
-channel = reckon.connect("localhost:50051", insecure=True)
+channel = reckon_db.connect("localhost:50051", insecure=True)
 
 # System root pool
-channel = reckon.connect("reckon.example.com:50051")
+channel = reckon_db.connect("reckon.example.com:50051")
 
 # Private CA
-channel = reckon.connect("reckon.example.com:50051", ca_cert="/path/to/ca.pem")
+channel = reckon_db.connect("reckon.example.com:50051", ca_cert="/path/to/ca.pem")
 
 # IP dial with SNI override
-channel = reckon.connect("10.0.0.5:50051", server_name_override="reckon.example.com")
+channel = reckon_db.connect("10.0.0.5:50051", server_name_override="reckon.example.com")
 ```
 
 ## Regenerating stubs
