@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- The quick start (README and the package docstring) built its events with
+  `reckon_streams_pb2.ProposedEvent`, which does not exist: the message is in
+  `reckon_shared_pb2`. It imports that module now. CI type-checks every Python
+  block in the README and guides against the package (macula-codebase-checks#8),
+  and a tag waits on it before it publishes.
+
 ## v0.2.0 (2026-09-26)
 
 The first release on PyPI. `pip install reckon-py` failed before: neither

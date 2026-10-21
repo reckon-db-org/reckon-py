@@ -47,8 +47,16 @@ jobs:
           name: dist
           path: dist/
 
+  # Every Python block in the README and guides type-checks against this
+  # package (macula-codebase-checks#8): a tag whose docs no longer match does
+  # not publish.
+  docs:
+    permissions:
+      contents: read
+    uses: macula-io/macula-ci-images/.github/workflows/doc-snippets-python.yml@9fe158192ecc3c728a5dbc6a125ac777d5b993e1
+
   publish:
-    needs: build
+    needs: [build, docs]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: pypi

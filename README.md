@@ -25,6 +25,7 @@ release on PyPI.
 
 ```python
 import reckon_db
+from reckon_db._proto import reckon_shared_pb2 as shared_pb
 from reckon_db._proto import reckon_streams_pb2 as streams_pb
 from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 
@@ -35,7 +36,7 @@ stub.AppendEvents(streams_pb.AppendEventsRequest(
     store_id="default_store",
     stream_id="users-1",
     expected_version=reckon_db.AnyVersion,
-    events=[streams_pb.ProposedEvent(
+    events=[shared_pb.ProposedEvent(
         event_type="user_registered_v1",
         data=b'{"name": "Alice"}',
         tags=["email:alice@example.com"],

@@ -13,6 +13,7 @@ Everything else is the raw generated stubs under ``reckon_db._proto``.
 Usage::
 
     import reckon_db
+    from reckon_db._proto import reckon_shared_pb2 as shared_pb
     from reckon_db._proto import reckon_streams_pb2 as streams_pb
     from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 
@@ -23,7 +24,7 @@ Usage::
         store_id="default_store",
         stream_id="users-1",
         expected_version=reckon_db.AnyVersion,
-        events=[streams_pb.ProposedEvent(
+        events=[shared_pb.ProposedEvent(
             event_type="user_registered_v1",
             data=b'{"name": "Alice"}',
             tags=["email:alice@example.com"],
@@ -52,7 +53,7 @@ DCB decision loop::
             store_id="default_store",
             tag_filter=f,
             seq_cutoff=cutoff,
-            events=[streams_pb.ProposedEvent(
+            events=[shared_pb.ProposedEvent(
                 event_type="seat_reserved_v1",
                 data=b'{"booking_id":"b-1"}',
                 tags=["seat:FL-42:A3"],

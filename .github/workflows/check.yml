@@ -77,3 +77,10 @@ jobs:
         run: |
           cp -r tests /tmp/wheel-tests
           cd /tmp && /tmp/v/bin/python -m pytest -q wheel-tests -p no:cacheprovider
+
+  # Every Python block in the README and guides type-checks against this
+  # package (macula-codebase-checks#8).
+  docs:
+    permissions:
+      contents: read
+    uses: macula-io/macula-ci-images/.github/workflows/doc-snippets-python.yml@9fe158192ecc3c728a5dbc6a125ac777d5b993e1
