@@ -32,9 +32,16 @@ from reckon_db._proto import reckon_streams_pb2_grpc as streams_grpc
 channel = reckon_db.connect("localhost:50051", insecure=True)
 stub = streams_grpc.StreamServiceStub(channel)
 
+# my_store is the store reckon-gateway's own quick start creates; use the
+# store id your gateway serves. A stream id is <prefix>-<32 hex>; the store
+# refuses any other shape. The rule and how to make one:
+# https://hexdocs.pm/reckon_gater/stream_ids.html
+STORE = "my_store"
+USER = "user-7c4b9f1e2a8d4c3b9f7e5d1a2b3c4d5e"
+
 stub.AppendEvents(streams_pb.AppendEventsRequest(
-    store_id="default_store",
-    stream_id="users-1",
+    store_id=STORE,
+    stream_id=USER,
     expected_version=reckon_db.AnyVersion,
     events=[shared_pb.ProposedEvent(
         event_type="user_registered_v1",
@@ -42,6 +49,15 @@ stub.AppendEvents(streams_pb.AppendEventsRequest(
         tags=["email:alice@example.com"],
     )],
 ))
+
+read = stub.ReadStreamForward(streams_pb.ReadStreamRequest(
+    store_id=STORE,
+    stream_id=USER,
+    start_version=0,
+    count=100,
+))
+for e in read.events:
+    print(e.version, e.event_type, e.data)
 ```
 
 ## Available proto modules
@@ -83,13 +99,13 @@ f = reckon_db.and_(
 )
 
 ctx = stub.ReadDcbContext(dcb_pb.ReadDcbContextRequest(
-    store_id="default_store",
+    store_id="my_store",
     tag_filter=f,
 ))
 cutoff = ctx.max_seq if ctx.events else reckon_db.SEQ_CUTOFF_SAW_NOTHING
 
 resp = stub.AppendIfNoTagMatches(dcb_pb.AppendIfNoTagMatchesRequest(
-    store_id="default_store",
+    store_id="my_store",
     tag_filter=f,
     seq_cutoff=cutoff,
     events=[...],
